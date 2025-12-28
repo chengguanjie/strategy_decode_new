@@ -79,33 +79,6 @@ export const LazyProfilePanel = dynamic(
                   }
 );
 
-// StrategyDetail - 战略详情 (包含多个子表格)
-export const LazyStrategyDetail = dynamic(
-                  () => import('@/components/strategy').then(mod => ({ default: mod.StrategyDetail })),
-                  {
-                                    loading: LoadingFallback,
-                                    ssr: false,
-                  }
-);
-
-// StrategyMap - 战略地图
-export const LazyStrategyMap = dynamic(
-                  () => import('@/components/strategy').then(mod => ({ default: mod.StrategyMap })),
-                  {
-                                    loading: LoadingFallback,
-                                    ssr: false,
-                  }
-);
-
-// AISidebar - AI 侧边栏
-export const LazyAISidebar = dynamic(
-                  () => import('@/components/ai').then(mod => ({ default: mod.AISidebar })),
-                  {
-                                    loading: LoadingFallback,
-                                    ssr: false,
-                  }
-);
-
 // PerformanceDeduction - 业绩推导
 export const LazyPerformanceDeduction = dynamic(
                   () => import('@/components/strategy/PerformanceDeduction'),

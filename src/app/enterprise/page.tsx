@@ -16,8 +16,6 @@ import {
   ApartmentOutlined,
   UserOutlined,
   ThunderboltOutlined,
-  MenuUnfoldOutlined,
-  MenuFoldOutlined,
   SettingOutlined,
   LineChartOutlined
 } from '@ant-design/icons';
@@ -29,35 +27,19 @@ import {
   LazyAIConfigPanel,
   LazyAccountManagement,
   LazyProfilePanel,
-  LazyStrategyDetail,
-  LazyStrategyMap,
-  LazyAISidebar,
   LazyPerformanceDeduction,
 } from '@/components/lazy';
-import { INITIAL_CONTENT, DEFAULT_AI_CONFIG, UI_CONFIG } from '@/lib/constants';
-import { BlockContent, DepartmentNode } from '@/types';
+import { DEFAULT_AI_CONFIG, UI_CONFIG } from '@/lib/constants';
 import './page.scss';
 
 const { Sider, Content } = Layout;
 
-interface ApiDepartment {
-  id: string;
-  name: string;
-  parentId: string | null;
-  leader: string | null;
-  memberCount: number;
-}
-
 export default function EnterprisePage() {
   const router = useRouter();
-  const [selectedId, setSelectedId] = useState<string>('market');
-  const [treeData, setTreeData] = useState<DepartmentNode[]>([]);
-  const [activeDeptName, setActiveDeptName] = useState<string>('');
 
   const [navCollapsed, setNavCollapsed] = useState(false);
-  const [mapCollapsed, setMapCollapsed] = useState(false);
   const [adminExpanded, setAdminExpanded] = useState(false);
-  const [activeMenu, setActiveMenu] = useState<string>('decode');
+  const [activeMenu, setActiveMenu] = useState<string>('dashboard');
   const [isMounted, setIsMounted] = useState(false);
 
   // AI Config State
@@ -66,48 +48,6 @@ export default function EnterprisePage() {
   // Current user info
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [enterpriseInfo, setEnterpriseInfo] = useState<any>(null);
-
-  const [mapWidth, setMapWidth] = useState(UI_CONFIG.MAP_DEFAULT_WIDTH);
-  const [isResizing, setIsResizing] = useState(false);
-
-  const buildTreeData = (departments: ApiDepartment[]): DepartmentNode[] => {
-    const map = new Map<string, DepartmentNode>();
-    const roots: DepartmentNode[] = [];
-
-    departments.forEach(dept => {
-      map.set(dept.id, { key: dept.id, title: dept.name, children: [] });
-    });
-
-    departments.forEach(dept => {
-      const node = map.get(dept.id)!;
-      if (dept.parentId && map.has(dept.parentId)) {
-        map.get(dept.parentId)!.children!.push(node);
-      } else {
-        roots.push(node);
-      }
-    });
-
-    return roots;
-  };
-
-  const fetchDepartments = useCallback(async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('/api/enterprise/departments', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (res.ok) {
-        const result = await res.json();
-        // API 返回格式: { success: true, data: [...] }
-        const data: ApiDepartment[] = result.data || result;
-        setTreeData(buildTreeData(Array.isArray(data) ? data : []));
-      }
-    } catch (e) {
-      console.error('Failed to fetch departments:', e);
-    }
-  }, []);
 
   useEffect(() => {
     setIsMounted(true);
@@ -140,8 +80,7 @@ export default function EnterprisePage() {
         console.error('Failed to load AI config:', e);
       }
     }
-    fetchDepartments();
-  }, [fetchDepartments, router]);
+  }, [router]);
 
   useEffect(() => {
     if (isMounted) {
@@ -174,51 +113,6 @@ export default function EnterprisePage() {
       fetchEnterpriseInfo();
     }
   }, [currentUser, fetchEnterpriseInfo]);
-
-  // Resize handlers
-  const startResizing = useCallback(() => {
-    setIsResizing(true);
-  }, []);
-
-  const stopResizing = useCallback(() => {
-    setIsResizing(false);
-  }, []);
-
-  const resize = useCallback(
-    (mouseMoveEvent: MouseEvent) => {
-      if (isResizing) {
-        const navWidth = navCollapsed ? UI_CONFIG.NAV_COLLAPSED_WIDTH : UI_CONFIG.NAV_EXPANDED_WIDTH;
-        const newWidth = mouseMoveEvent.clientX - navWidth;
-        if (newWidth >= UI_CONFIG.MAP_MIN_WIDTH && newWidth <= UI_CONFIG.MAP_MAX_WIDTH) {
-          setMapWidth(newWidth);
-        }
-      }
-    },
-    [isResizing, navCollapsed]
-  );
-
-  useEffect(() => {
-    window.addEventListener("mousemove", resize);
-    window.addEventListener("mouseup", stopResizing);
-    return () => {
-      window.removeEventListener("mousemove", resize);
-      window.removeEventListener("mouseup", stopResizing);
-    };
-  }, [resize, stopResizing]);
-
-  const getContent = (id: string): BlockContent => {
-    if (INITIAL_CONTENT[id]) {
-      return INITIAL_CONTENT[id];
-    }
-    if (id.includes('-process')) return INITIAL_CONTENT['template-process'];
-    if (id.includes('-team')) return INITIAL_CONTENT['template-team'];
-    if (id.includes('-review')) return INITIAL_CONTENT['template-review'];
-    if (id.includes('execution')) return INITIAL_CONTENT['strategy-execution'];
-
-    return INITIAL_CONTENT['default'];
-  };
-
-  const currentContent = getContent(selectedId);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -280,52 +174,15 @@ export default function EnterprisePage() {
 
       default:
         return (
-          <>
-            <Sider
-              width={mapWidth}
-              theme="light"
-              className="strategy-map-sider"
-              collapsible
-              collapsed={mapCollapsed}
-              trigger={null}
-              collapsedWidth={0}
-            >
-              <LazyStrategyMap
-                selectedId={selectedId}
-                onSelect={(id) => setSelectedId(id)}
-                onDepartmentChange={(_, name) => setActiveDeptName(name)}
-                treeData={treeData}
-              />
-              {!mapCollapsed && (
-                <div
-                  className="resize-handle"
-                  onMouseDown={startResizing}
-                />
-              )}
-            </Sider>
-
-            <Content className="strategy-content">
-              <div
-                className="map-toggle-btn"
-                onClick={() => setMapCollapsed(!mapCollapsed)}
-              >
-                {mapCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              </div>
-
-              <LazyStrategyDetail content={currentContent} departmentName={activeDeptName} />
-
-              <LazyAISidebar
-                pageTitle={currentContent.title}
-                pageContent={JSON.stringify(currentContent)}
-              />
-            </Content>
-          </>
+          <Content className="strategy-content" style={{ height: '100%', padding: 0, background: '#f0f2f5' }}>
+            <LazyDashboard />
+          </Content>
         );
     }
   };
 
   return (
-    <div className={`strategy-page-container ${isResizing ? 'resizing' : ''}`}>
+    <div className="strategy-page-container">
       <Layout className="strategy-page-layout">
         <Sider
           theme="dark"
@@ -357,14 +214,6 @@ export default function EnterprisePage() {
               >
                 <DashboardOutlined />
                 {!navCollapsed && <span>总驾驶舱</span>}
-              </div>
-
-              <div
-                className={`menu-item ${activeMenu === 'decode' ? 'active' : ''}`}
-                onClick={() => setActiveMenu('decode')}
-              >
-                <RocketOutlined />
-                {!navCollapsed && <span>战略解码</span>}
               </div>
 
               <div

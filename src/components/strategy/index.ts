@@ -1,6 +1,4 @@
-export { default as StrategyMap } from './StrategyMap';
 export { default as MarketSelectionTable } from './MarketSelectionTable';
-export { default as StrategyDetail } from './StrategyDetail';
 export { default as StrategyHeader } from './StrategyHeader';
 export { default as FinancialTable } from './FinancialTable';
 export { default as GanttChart } from './GanttChart';
