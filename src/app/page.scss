@@ -1,0 +1,108 @@
+@import '../styles/variables.scss';
+
+.home-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+
+  .home-container {
+    max-width: 1200px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .hero-section {
+    margin-bottom: 60px;
+    color: white;
+
+    .logo-box {
+      width: 80px;
+      height: 80px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+
+      .logo-icon {
+        font-size: 40px;
+        color: white;
+      }
+    }
+
+    h1 {
+      font-size: 48px;
+      font-weight: 700;
+      margin: 0 0 16px;
+    }
+
+    p {
+      font-size: 18px;
+      opacity: 0.9;
+    }
+  }
+
+  .portals-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    margin-bottom: 60px;
+
+    .portal-card {
+      padding: 40px 24px;
+      text-align: center;
+      border-radius: 16px;
+      transition: transform 0.3s, box-shadow 0.3s;
+
+      &:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      }
+
+      .portal-icon {
+        font-size: 48px;
+        margin-bottom: 24px;
+      }
+
+      &.admin .portal-icon {
+        color: #f5222d;
+      }
+
+      &.enterprise .portal-icon {
+        color: $primary-color;
+      }
+
+      &.employee .portal-icon {
+        color: #52c41a;
+      }
+
+      h3 {
+        font-size: 24px;
+        font-weight: 600;
+        margin: 0 0 12px;
+      }
+
+      p {
+        color: #666;
+        margin: 0 0 24px;
+      }
+    }
+  }
+
+  .footer {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+  }
+}
+
+@media (max-width: $breakpoint-md) {
+  .home-page {
+    .portals-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}

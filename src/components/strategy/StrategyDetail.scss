@@ -1,0 +1,353 @@
+@import '../../styles/variables.scss';
+
+.strategy-detail-container {
+  padding: 40px;
+  min-height: 100%;
+
+  .detail-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex: 1;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+    }
+
+    .header-icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+
+      &.blue {
+        background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+      }
+    }
+
+    .header-text {
+      h2 {
+        margin: 0;
+        font-size: 20px; // Reduced from 28px
+        font-weight: 700;
+      }
+    }
+
+    .ai-status {
+      margin-left: auto;
+    }
+  }
+
+  .section-card {
+    margin-bottom: 24px;
+    border-radius: 12px;
+    box-shadow: $shadow-sm;
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+
+      h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .icon-red {
+        color: $error-color;
+        font-size: 20px;
+      }
+
+      .icon-blue {
+        color: $info-color;
+        font-size: 20px;
+      }
+    }
+
+    .card-content-box {
+      padding: 16px;
+      border-radius: 8px;
+
+      &.highlight-bg {
+        background: linear-gradient(135deg, rgba($primary-color, 0.05) 0%, rgba($secondary-color, 0.05) 100%);
+        border: 1px solid rgba($primary-color, 0.1);
+      }
+    }
+  }
+
+  .tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .custom-tag {
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 13px;
+    }
+
+    .add-tag {
+      cursor: pointer;
+      border-style: dashed;
+    }
+  }
+
+  .columns-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 24px;
+
+    .grid-card {
+      border-radius: 12px;
+
+      .ant-card-head {
+        border-bottom: 1px solid #f0f0f0;
+      }
+
+      .ant-card-head-title {
+        font-size: 15px;
+        font-weight: 600;
+      }
+    }
+
+    .custom-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 16px 0;
+
+      li {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 8px 0;
+        border-bottom: 1px solid #f5f5f5;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        .bullet {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: $primary-color;
+          margin-top: 6px;
+          flex-shrink: 0;
+        }
+      }
+    }
+  }
+
+  .ai-assistant-bar {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    max-width: calc(100% - 48px);
+
+    .ai-input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+
+      input {
+        flex: 1;
+      }
+    }
+  }
+
+
+  // Removed delete-icon-hover block since we are moving to context menu, 
+  // OR we can keep it if we want to visually support both, but user asked for MarketSelection style which uses context menu mostly.
+  // However, the MarketSelection styles I just read in MarketSelectionTable.scss HAVE .financial-table-wrapper styles!
+  // StrategyDetail.tsx already includes StrategyDetail.scss. 
+  // AND MarketSelectionTable.tsx includes StrategyDetail.scss AND MarketSelectionTable.scss.
+  // So if I add these styles to StrategyDetail.scss, they will be available to both.
+
+  .financial-table-wrapper {
+    position: relative;
+
+    // Existing table-toolbar style might be removed or kept for other things, but here we add the new hover zones
+
+    // Hover Zone for adding columns (right side)
+    .hover-add-column-target {
+      position: absolute;
+      right: 0;
+      top: 55px; // Approximate header height
+      bottom: 0;
+      width: 20px;
+      z-index: 100;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s;
+
+      &:hover {
+        opacity: 1;
+      }
+
+      .add-col-icon-box {
+        width: 24px;
+        height: 24px;
+        background: #1890ff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        margin-top: -12px;
+      }
+    }
+
+    // Hover Zone for adding rows (bottom side)
+    .hover-add-row-target {
+      width: 100%;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 1px dashed transparent;
+      transition: all 0.2s;
+      margin-top: 4px;
+
+      .add-row-btn-content {
+        color: #1890ff;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 13px;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+
+      &:hover {
+        border-color: #1890ff;
+        background: rgba(24, 144, 255, 0.05);
+
+        .add-row-btn-content {
+          opacity: 1;
+        }
+      }
+    }
+
+    // Header Cell Specifics for "Add Column" trigger
+    .header-cell-hover-target {
+      position: relative;
+
+      .add-column-trigger {
+        position: absolute;
+        right: -12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 20px;
+        z-index: 1000;
+        opacity: 0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.2s;
+
+        &::after {
+          content: '';
+          position: absolute;
+          top: -10px;
+          bottom: -10px;
+          left: 0;
+          right: 0;
+        }
+
+        .add-icon {
+          width: 18px;
+          height: 18px;
+          background: #1890ff;
+          border-radius: 50%;
+          color: white;
+          font-size: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+      }
+
+      &:hover {
+        .add-column-trigger {
+          opacity: 1;
+        }
+      }
+
+      // Maintain the delete icon hover if we still want it, or override it.
+      // For now, let's keep the existing delete-icon-hover logic if it was there, 
+      // explicitly defined in previous SCSS content. 
+      // It was defined as:
+      // .delete-icon-hover { display: none; ... } &:hover { .delete-icon-hover { display: inline-flex; } }
+    }
+  }
+
+  @media (max-width: $breakpoint-md) {
+    .strategy-detail-container {
+      padding: 24px;
+
+      .columns-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+
+  .react-resizable {
+    position: relative;
+    background-clip: padding-box;
+  }
+
+  .react-resizable-handle {
+    position: absolute;
+    right: -5px;
+    bottom: 0;
+    z-index: 1;
+    width: 10px;
+    height: 100%;
+    cursor: col-resize;
+  }
+
+  .header-cell-hover-target,
+  .body-cell-hover-target {
+    .delete-icon-hover {
+      display: none;
+      opacity: 0;
+      transition: opacity 0.2s ease-in-out;
+    }
+
+    &:hover {
+      .delete-icon-hover {
+        display: inline-flex;
+        opacity: 1;
+      }
+    }
+  }
+}

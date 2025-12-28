@@ -1,0 +1,257 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  password     String
+  name         String
+  role         UserRole @default(EMPLOYEE)
+  avatar       String?
+  position     String?
+  enterpriseId String?
+  departmentId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  enterprise Enterprise? @relation(fields: [enterpriseId], references: [id])
+  department Department? @relation(fields: [departmentId], references: [id])
+
+  @@index([email])
+  @@index([enterpriseId, role])
+  @@index([departmentId])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model Enterprise {
+  id        String           @id @default(cuid())
+  name      String
+  code      String           @unique
+  logo      String?
+  status    EnterpriseStatus @default(ACTIVE)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  users       User[]
+  departments Department[]
+  strategies  Strategy[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("enterprises")
+}
+
+model Department {
+  id           String   @id @default(cuid())
+  name         String
+  leader       String?
+  parentId     String?
+  enterpriseId String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  enterprise Enterprise   @relation(fields: [enterpriseId], references: [id])
+  parent     Department?  @relation("DepartmentHierarchy", fields: [parentId], references: [id])
+  children   Department[] @relation("DepartmentHierarchy")
+  users      User[]
+  strategies Strategy[]
+
+  @@index([enterpriseId])
+  @@index([enterpriseId, parentId])
+  @@index([parentId])
+  @@map("departments")
+}
+
+model Strategy {
+  id           String   @id @default(cuid())
+  title        String
+  moduleType   String
+  coreProblem  String?  @db.Text
+  enterpriseId String
+  departmentId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  enterprise    Enterprise          @relation(fields: [enterpriseId], references: [id])
+  department    Department?         @relation(fields: [departmentId], references: [id])
+  marketData    MarketSelection[]
+  frameworks    StrategyFramework[]
+  winningPoints WinningPoint[]
+  actionPlans   ActionPlan[]
+  keyMetrics    KeyMetric[]
+
+  @@index([enterpriseId])
+  @@index([departmentId])
+  @@index([enterpriseId, departmentId])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@map("strategies")
+}
+
+model MarketSelection {
+  id                  String   @id @default(cuid())
+  strategyId          String
+  marketSegment       String?  @db.Text
+  corePositioning     String?  @db.Text
+  developmentTrend    String?  @db.Text
+  growthPoint         String?  @db.Text
+  internalRequirement String?  @db.Text
+  sortOrder           Int      @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  strategy Strategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+
+  @@index([strategyId])
+  @@map("market_selections")
+}
+
+model StrategyFramework {
+  id         String   @id @default(cuid())
+  strategyId String
+  name       String
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  strategy Strategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+
+  @@index([strategyId])
+  @@map("strategy_frameworks")
+}
+
+model WinningPoint {
+  id         String   @id @default(cuid())
+  strategyId String
+  content    String   @db.Text
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  strategy Strategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+
+  @@index([strategyId])
+  @@map("winning_points")
+}
+
+model ActionPlan {
+  id         String   @id @default(cuid())
+  strategyId String
+  content    String   @db.Text
+  status     String   @default("pending")
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  strategy Strategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+
+  @@index([strategyId])
+  @@map("action_plans")
+}
+
+model KeyMetric {
+  id         String   @id @default(cuid())
+  strategyId String
+  name       String
+  target     String?
+  current    String?
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  strategy Strategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+
+  @@index([strategyId])
+  @@map("key_metrics")
+}
+
+model CustomerStructureData {
+  id           String   @id @default(cuid())
+  enterpriseId String
+  departmentId String?
+  tableType    String
+  columns      String   @db.LongText
+  data         String   @db.LongText
+  rowHeights   String?  @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([enterpriseId, departmentId, tableType])
+  @@index([enterpriseId])
+  @@index([departmentId])
+  @@map("customer_structure_data")
+}
+
+model DashboardCard {
+  id           String   @id @default(cuid())
+  enterpriseId String
+  name         String
+  targetValue  String
+  currentValue String
+  unit         String
+  progress     Int      @default(0)
+  status       String   @default("warning")
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([enterpriseId])
+  @@map("dashboard_cards")
+}
+
+model DepartmentMetricTrend {
+  id           String   @id @default(cuid())
+  enterpriseId String
+  departmentId String
+  metricName   String
+  monthData    String   @db.Text
+  year         Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([enterpriseId, departmentId, metricName, year])
+  @@index([enterpriseId])
+  @@index([departmentId])
+  @@index([year])
+  @@map("department_metric_trends")
+}
+
+// 战略表格数据通用模型 - 用于持久化各类表格数据
+model StrategyTableData {
+  id           String   @id @default(cuid())
+  enterpriseId String
+  departmentId String?
+  tableType    String   // financial, market, value, process, team, review, department_strategy
+  columns      String   @db.LongText // JSON - 列定义
+  data         String   @db.LongText // JSON - 表格数据
+  rowHeights   String?  @db.Text     // JSON - 行高配置
+  version      Int      @default(1)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  createdBy    String?
+
+  @@unique([enterpriseId, departmentId, tableType])
+  @@index([enterpriseId])
+  @@index([departmentId])
+  @@index([tableType])
+  @@index([enterpriseId, tableType])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@map("strategy_table_data")
+}
+
+enum UserRole {
+  PLATFORM_ADMIN
+  ENTERPRISE_ADMIN
+  MANAGER
+  EMPLOYEE
+}
+
+enum EnterpriseStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}

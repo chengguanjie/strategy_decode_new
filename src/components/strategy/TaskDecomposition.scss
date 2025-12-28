@@ -1,0 +1,198 @@
+.task-decomposition-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .save-status-bar {
+    padding: 8px 12px;
+    background: #fafafa;
+    border-bottom: 1px solid #f0f0f0;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    .status {
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      &.saving {
+        color: #1890ff;
+      }
+
+      &.saved {
+        color: #52c41a;
+      }
+    }
+  }
+
+  .strategy-collapse {
+    flex: 1;
+    overflow-y: auto;
+    background: #fff;
+    border: none;
+
+    .ant-collapse-item {
+      border-bottom: 1px solid #f0f0f0;
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    .ant-collapse-header {
+      padding: 12px 16px !important;
+      background: #fafafa;
+
+      &:hover {
+        background: #f5f5f5;
+      }
+    }
+
+    .ant-collapse-content {
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .ant-collapse-content-box {
+      padding: 0 !important;
+    }
+  }
+
+  .strategy-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+
+    .strategy-index {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+      color: #fff;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .strategy-name {
+      flex: 1;
+      font-weight: 500;
+      color: #262626;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .task-count {
+      font-size: 12px;
+      color: #8c8c8c;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      .anticon {
+        font-size: 12px;
+      }
+    }
+  }
+
+  .panel-content {
+    padding: 16px;
+
+    .section {
+      margin-bottom: 20px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 12px 0;
+        font-size: 13px;
+        font-weight: 500;
+        color: #262626;
+
+        .title-bar {
+          width: 3px;
+          height: 14px;
+          background: linear-gradient(180deg, #1890ff 0%, #096dd9 100%);
+          border-radius: 2px;
+        }
+      }
+    }
+
+    .gantt-section {
+      .gantt-chart-container {
+        max-height: 300px;
+        overflow-y: auto;
+      }
+    }
+
+    .dept-section {
+      .dept-task-table {
+        margin-bottom: 12px;
+
+        .ant-table-thead > tr > th {
+          background: #fafafa;
+          font-size: 12px;
+          padding: 8px 12px;
+        }
+
+        .ant-table-tbody > tr > td {
+          padding: 8px 12px;
+          font-size: 12px;
+        }
+
+        .ant-input {
+          font-size: 12px;
+        }
+
+        .ant-select {
+          font-size: 12px;
+
+          .ant-select-selection-item {
+            font-size: 12px;
+          }
+        }
+      }
+
+      .add-dept-task-btn {
+        margin-top: 8px;
+        font-size: 12px;
+        color: #8c8c8c;
+        border-color: #d9d9d9;
+
+        &:hover {
+          color: #1890ff;
+          border-color: #1890ff;
+        }
+      }
+    }
+  }
+}
+
+.task-decomposition-empty {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: #fafafa;
+  border-radius: 8px;
+
+  .hint-text {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #8c8c8c;
+    text-align: center;
+  }
+}

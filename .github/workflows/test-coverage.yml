@@ -1,0 +1,83 @@
+name: Test Coverage
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Setup environment
+      run: |
+        cp .env.example .env
+        echo "DATABASE_URL=\"postgresql://test:test@localhost:5432/testdb\"" >> .env
+        echo "JWT_SECRET=\"test-secret-key\"" >> .env
+
+    - name: Run tests with coverage
+      run: npm run test:coverage:ci
+
+    - name: Analyze coverage
+      run: node scripts/analyze-coverage.js
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+    - name: Archive coverage reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report-${{ matrix.node-version }}
+        path: coverage/
+        retention-days: 7
+
+    - name: Comment PR with coverage
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const coverage = JSON.parse(fs.readFileSync('./coverage/coverage-summary.json', 'utf8'));
+          const total = coverage.total;
+
+          const coverageTable = `
+          ## Test Coverage Report 📊
+
+          | Metric | Coverage | Details |
+          |--------|----------|---------|
+          | Statements | ${total.statements.pct.toFixed(2)}% | ${total.statements.covered}/${total.statements.total} |
+          | Branches | ${total.branches.pct.toFixed(2)}% | ${total.branches.covered}/${total.branches.total} |
+          | Functions | ${total.functions.pct.toFixed(2)}% | ${total.functions.covered}/${total.functions.total} |
+          | Lines | ${total.lines.pct.toFixed(2)}% | ${total.lines.covered}/${total.lines.total} |
+          `;
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: coverageTable
+          });

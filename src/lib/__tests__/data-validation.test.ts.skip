@@ -1,0 +1,426 @@
+/**
+ * Property Test: 数据验证完整性 (Data Validation Completeness)
+ * 
+ * **Property 3: 数据验证完整性**
+ * *For any* API POST/PUT请求，当请求体缺少必需字段时，系统应返回400状态码和明确的错误信息。
+ * 
+ * **Validates: Requirements 4.3, 8.3**
+ * 
+ * Feature: project-diagnosis-improvement, Property 3: 数据验证完整性
+ */
+
+import fc from 'fast-check';
+import {
+  loginSchema,
+  registerSchema,
+  createUserSchema,
+  createDepartmentSchema,
+  updateDepartmentSchema,
+  customerStructureSchema,
+  createStrategySchema,
+  createDashboardCardSchema,
+} from '../validations';
+import { validateBody } from '../validations/validate';
+
+describe('Data Validation Completeness - Property 3', () => {
+  /**
+   * Property: Login validation should reject requests missing required fields
+   */
+  describe('Login Schema Validation', () => {
+    it('should reject requests with missing email', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.string({ minLength: 1 }),
+          async (password) => {
+            const result = validateBody({ password }, loginSchema);
+            expect(result.success).toBe(false);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('should reject requests with missing password', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.emailAddress(),
+          async (email) => {
+            const result = validateBody({ email }, loginSchema);
+            expect(result.success).toBe(false);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('should reject requests with invalid email format', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.string({ minLength: 1 }).filter(s => !s.includes('@')),
+          fc.string({ minLength: 1 }),
+          async (invalidEmail, password) => {
+            const result = validateBody({ email: invalidEmail, password }, loginSchema);
+            expect(result.success).toBe(false);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('should accept valid login requests', async () => {
+      // Use constant valid emails since fast-check's emailAddress() generates emails
+      // that may not pass Zod's stricter validation
+      const validEmails = [
+        'test@example.com',
+        'user@domain.org',
+        'admin@company.net',
+        'info@test.io',
+        'support@service.co',
+      ];
+      
+      await fc.assert(
+        fc.asyncProperty(
+          fc.constantFrom(...validEmails),
+          fc.string({ minLength: 1 }).filter(s => s.trim().length > 0),
+          async (email, password) => {
+            const result = validateBody({ email, password }, loginSchema);
+            expect(result.success).toBe(true);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+  });
+
+  /**
+   * Property: Register validation should enforce password requirements
+   */
+  describe('Register Schema Validation', () => {
+    it('should reject passwords shorter than 6 characters', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.string({ minLength: 1, maxLength: 100 }),
+          fc.emailAddress(),
+          fc.string({ minLength: 1, maxLength: 5 }),
+          async (name, email, shortPassword) => {
+            const result = validateBody({ name, email, password: shortPassword }, registerSchema);
+            expect(result.success).toBe(false);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('should accept valid registration requests', async () => {
+      // Use constant valid emails since fast-check's emailAddress() generates emails
+      // that may not pass Zod's stricter validation
+      const validEmails = [
+        'test@example.com',
+        'user@domain.org',
+        'admin@company.net',
+        'info@test.io',
+        'support@service.co',
+      ];
+      
+      await fc.assert(
+        fc.asyncProperty(
+          fc.string({ minLength: 1, maxLength: 100 }).filter(s => s.trim().length > 0),
+          fc.constantFrom(...validEmails),
+          fc.string({ minLength: 6, maxLength: 100 }).filter(s => s.trim().length >= 6),
+          async (name, email, password) => {
+            const result = validateBody({ name, email, password }, registerSchema);
+            expect(result.success).toBe(true);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+  });
+
+  /**
+   * Property: Department validation should require name field
+   */
+  describe('Department Schema Validation', () => {
+    it('should reject department creation without name', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.option(fc.string({ minLength: 1, maxLength: 100 }), { nil: undefined }),
+          async (leader) => {
+            const result = validateBody({ leader }, createDepartmentSchema);
+            expect(result.success).toBe(false);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('should accept valid department creation requests', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.string({ minLength: 1, maxLength: 100 }),
+          fc.option(fc.string({ minLength: 1, maxLength: 100 }), { nil: undefined }),
+          async (name, leader) => {
+            const result = validateBody({ name, leader }, createDepartmentSchema);
+            expect(result.success).toBe(true);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('should accept partial updates for department', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.option(fc.string({ minLength: 1, maxLength: 100 }), { nil: undefined }),
+          fc.option(fc.string({ minLength: 1, maxLength: 100 }), { nil: undefined }),
+          async (name, leader) => {
+            const result = validateBody({ name, leader }, updateDepartmentSchema);
+            expect(result.success).toBe(true);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+  });
+
+  /**
+   * Property: User creation validation should require all mandatory fields
+   */
+  describe('User Schema Validation', () => {
+    it('should reject user creation without required fields', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.constantFrom(
+            { email: 'test@test.com', password: 'password123' }, // missing name
+            { name: 'Test', password: 'password123' }, // missing email
+            { name: 'Test', email: 'test@test.com' }, // missing password
+          ),
+          async (incompleteData) => {
+            const result = validateBody(incompleteData, createUserSchema);
+            expect(result.success).toBe(false);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('should accept valid user creation requests', async () => {
+      // Use constant valid emails since fast-check's emailAddress() generates emails
+      // that may not pass Zod's stricter validation
+      const validEmails = [
+        'test@example.com',
+        'user@domain.org',
+        'admin@company.net',
+        'info@test.io',
+        'support@service.co',
+      ];
+      
+      await fc.assert(
+        fc.asyncProperty(
+          fc.string({ minLength: 1, maxLength: 100 }).filter(s => s.trim().length > 0),
+          fc.constantFrom(...validEmails),
+          fc.string({ minLength: 6, maxLength: 100 }).filter(s => s.trim().length >= 6),
+          async (name, email, password) => {
+            const result = validateBody({ name, email, password }, createUserSchema);
+            expect(result.success).toBe(true);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('should validate role enum values', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.string({ minLength: 1, maxLength: 100 }),
+          fc.emailAddress(),
+          fc.string({ minLength: 6, maxLength: 100 }),
+          fc.string({ minLength: 1 }).filter(s => 
+            !['PLATFORM_ADMIN', 'ENTERPRISE_ADMIN', 'MANAGER', 'EMPLOYEE'].includes(s)
+          ),
+          async (name, email, password, invalidRole) => {
+            const result = validateBody({ name, email, password, role: invalidRole }, createUserSchema);
+            expect(result.success).toBe(false);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+  });
+
+  /**
+   * Property: Strategy validation should require title and moduleType
+   */
+  describe('Strategy Schema Validation', () => {
+    it('should reject strategy creation without title', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.string({ minLength: 1 }),
+          async (moduleType) => {
+            const result = validateBody({ moduleType }, createStrategySchema);
+            expect(result.success).toBe(false);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('should reject strategy creation without moduleType', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.string({ minLength: 1, maxLength: 200 }),
+          async (title) => {
+            const result = validateBody({ title }, createStrategySchema);
+            expect(result.success).toBe(false);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('should accept valid strategy creation requests', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.string({ minLength: 1, maxLength: 200 }),
+          fc.string({ minLength: 1 }),
+          async (title, moduleType) => {
+            const result = validateBody({ title, moduleType }, createStrategySchema);
+            expect(result.success).toBe(true);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+  });
+
+  /**
+   * Property: Dashboard card validation should require all mandatory fields
+   */
+  describe('Dashboard Card Schema Validation', () => {
+    it('should reject dashboard card creation without required fields', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.constantFrom(
+            { targetValue: '100', currentValue: '50', unit: '%' }, // missing name
+            { name: 'Test', currentValue: '50', unit: '%' }, // missing targetValue
+            { name: 'Test', targetValue: '100', unit: '%' }, // missing currentValue
+            { name: 'Test', targetValue: '100', currentValue: '50' }, // missing unit
+          ),
+          async (incompleteData) => {
+            const result = validateBody(incompleteData, createDashboardCardSchema);
+            expect(result.success).toBe(false);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('should accept valid dashboard card creation requests', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.string({ minLength: 1, maxLength: 100 }),
+          fc.string({ minLength: 1 }),
+          fc.string({ minLength: 1 }),
+          fc.string({ minLength: 1, maxLength: 20 }),
+          async (name, targetValue, currentValue, unit) => {
+            const result = validateBody({ name, targetValue, currentValue, unit }, createDashboardCardSchema);
+            expect(result.success).toBe(true);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('should validate progress range (0-100)', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.string({ minLength: 1, maxLength: 100 }),
+          fc.string({ minLength: 1 }),
+          fc.string({ minLength: 1 }),
+          fc.string({ minLength: 1, maxLength: 20 }),
+          fc.integer({ min: -1000, max: -1 }),
+          async (name, targetValue, currentValue, unit, negativeProgress) => {
+            const result = validateBody(
+              { name, targetValue, currentValue, unit, progress: negativeProgress },
+              createDashboardCardSchema
+            );
+            expect(result.success).toBe(false);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('should validate status enum values', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.string({ minLength: 1, maxLength: 100 }),
+          fc.string({ minLength: 1 }),
+          fc.string({ minLength: 1 }),
+          fc.string({ minLength: 1, maxLength: 20 }),
+          fc.string({ minLength: 1 }).filter(s => !['success', 'warning', 'danger'].includes(s)),
+          async (name, targetValue, currentValue, unit, invalidStatus) => {
+            const result = validateBody(
+              { name, targetValue, currentValue, unit, status: invalidStatus },
+              createDashboardCardSchema
+            );
+            expect(result.success).toBe(false);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+  });
+
+  /**
+   * Property: Customer structure validation should require tableType, columns, and data
+   */
+  describe('Customer Structure Schema Validation', () => {
+    it('should reject customer structure without tableType', async () => {
+      const result = validateBody(
+        { columns: [{ key: 'a', title: 'A' }], data: [{}] },
+        customerStructureSchema
+      );
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject customer structure without columns', async () => {
+      const result = validateBody(
+        { tableType: 'test', data: [{}] },
+        customerStructureSchema
+      );
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject customer structure without data', async () => {
+      const result = validateBody(
+        { tableType: 'test', columns: [{ key: 'a', title: 'A' }] },
+        customerStructureSchema
+      );
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept valid customer structure requests', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.string({ minLength: 1 }),
+          fc.array(
+            fc.record({
+              key: fc.string({ minLength: 1 }),
+              title: fc.string({ minLength: 1 }),
+            }),
+            { minLength: 1, maxLength: 10 }
+          ),
+          async (tableType, columns) => {
+            const result = validateBody(
+              { tableType, columns, data: [{}] },
+              customerStructureSchema
+            );
+            expect(result.success).toBe(true);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+  });
+});

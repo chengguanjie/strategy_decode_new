@@ -1,0 +1,239 @@
+@import '../../styles/variables.scss';
+
+.organization-settings {
+  display: flex;
+  height: 100%;
+  background: #fff;
+
+  .org-left-panel {
+    width: 280px;
+    border-right: 1px solid $border-light;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid $border-light;
+
+      .panel-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: $text-primary;
+      }
+    }
+
+    .dept-tree {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 8px;
+
+      .ant-tree {
+        background: transparent;
+
+        .ant-tree-treenode {
+          padding: 4px 0;
+          width: 100%;
+
+          &:hover {
+            background: $bg-hover;
+            border-radius: $border-radius-md;
+          }
+
+          &.ant-tree-treenode-selected {
+            background: rgba($primary-color, 0.1);
+            border-radius: $border-radius-md;
+          }
+        }
+
+        .ant-tree-node-content-wrapper {
+          flex: 1;
+          padding: 4px 8px;
+
+          &:hover {
+            background: transparent;
+          }
+
+          &.ant-tree-node-selected {
+            background: transparent;
+            color: $primary-color;
+          }
+        }
+
+        .ant-tree-switcher {
+          width: 20px;
+          line-height: 32px;
+        }
+      }
+
+      .dept-tree-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+
+        .dept-name {
+          color: $text-primary;
+          font-weight: 500;
+        }
+
+        .dept-leader {
+          color: $text-secondary;
+          font-size: 12px;
+        }
+
+        .dept-count {
+          color: $text-disabled;
+          font-size: 12px;
+        }
+      }
+    }
+  }
+
+  .org-right-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: #fafafa;
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 20px 24px;
+      background: #fff;
+      border-bottom: 1px solid $border-light;
+
+      .dept-info {
+        .dept-title {
+          margin: 0;
+          font-size: 18px;
+          font-weight: 600;
+          color: $text-primary;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+
+          .member-count {
+            font-size: 12px;
+            font-weight: normal;
+            color: $primary-color;
+            background: rgba($primary-color, 0.1);
+            padding: 2px 8px;
+            border-radius: 10px;
+          }
+        }
+
+        .dept-leader-info {
+          margin-top: 8px;
+          font-size: 14px;
+          color: $text-secondary;
+        }
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+
+        .search-input {
+          width: 200px;
+        }
+      }
+    }
+
+    .members-grid {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      align-content: start;
+
+      .member-card {
+        background: #fff;
+        border: 1px solid $border-light;
+        border-radius: $border-radius-lg;
+        padding: 20px;
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+          border-color: $primary-color;
+          box-shadow: $shadow-sm;
+        }
+
+        .member-avatar {
+          background: $primary-color;
+          flex-shrink: 0;
+        }
+
+        .member-info {
+          flex: 1;
+          min-width: 0;
+
+          .member-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: $text-primary;
+            margin-bottom: 4px;
+          }
+
+          .member-position {
+            font-size: 13px;
+            color: $text-secondary;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            .member-level {
+              font-size: 12px;
+              color: $text-disabled;
+            }
+          }
+
+          .member-role {
+            margin-top: 8px;
+            font-size: 12px;
+            color: $primary-color;
+            background: rgba($primary-color, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: inline-block;
+          }
+        }
+
+        &.add-card {
+          border-style: dashed;
+          justify-content: center;
+          align-items: center;
+          flex-direction: column;
+          gap: 8px;
+          min-height: 100px;
+          color: $text-disabled;
+
+          &:hover {
+            border-color: $primary-color;
+            color: $primary-color;
+          }
+
+          .add-icon {
+            font-size: 24px;
+          }
+
+          .add-text {
+            font-size: 14px;
+          }
+        }
+      }
+    }
+  }
+}
